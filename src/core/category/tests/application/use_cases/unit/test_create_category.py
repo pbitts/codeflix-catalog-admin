@@ -6,7 +6,7 @@ import pytest
 from src.core.category.application.category_repository import CategoryRepository
 from src.core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest, CreateCategoryResponse
 from src.core.category.application.use_cases.exceptions import InvalidCategoryData
-
+ 
 
 class TestCreateCategory:
     def test_create_category_with_valid_data(self):

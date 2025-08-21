@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from scr.core.category.domain.category import Category
+from src.core.category.domain.category import Category
 
 
 class CategoryRepository(ABC):
