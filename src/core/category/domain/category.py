@@ -29,7 +29,7 @@ class Category:
             return False
         return self.id == other.id
 
-    def update(self, name = None, description = None):
+    def update_category(self, name = None, description = None):
         if name:
             self.name = name
         if description:

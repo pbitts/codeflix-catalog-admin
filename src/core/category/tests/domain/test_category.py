@@ -55,25 +55,25 @@ class TestCategory:
     class TestUpdateCategory:
         def test_update_category_with_name_and_description(self):
             category = Category("Movie", "some description", True)
-            category.update("Movie 2", "some description 2")
+            category.update_category("Movie 2", "some description 2")
             assert category.name == "Movie 2"
             assert category.description == "some description 2"
 
         def test_update_category_with_only_name(self):
             category = Category("Movie", "some description", True)
-            category.update("Movie 2")
+            category.update_category("Movie 2")
             assert category.name == "Movie 2"
 
         def test_update_category_with_only_description(self):
             category = Category("Movie", "some description", True)
-            category.update(description="some description 2")
+            category.update_category(description="some description 2")
             assert category.description == "some description 2"
         
         def test_update_category_with_invalid_name(self):
             category = Category(name='Movie', description='some description')
 
             with pytest.raises(ValueError, match='name cannot be longer than 255'):
-                category.update(name="a" *256, description="some description 2")
+                category.update_category(name="a" *256, description="some description 2")
 
         class TestActivate:
             def test_activate_category(self):
