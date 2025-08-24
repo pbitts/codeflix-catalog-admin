@@ -11,9 +11,10 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core.category.application.use_cases.delete_category import DeleteCategory, DeleteCategoryRequest
 from src.core.category.application.use_cases.update_category import UpdateCategory, UpdateCategoryRequest
 from src.core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest
-from django_project.category_app.serializers import CategoryResponseSerializer, CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, RetrieveCategoryResponseSerializer, UpdateCategoryRequestSerializer
+from django_project.category_app.serializers import CategoryResponseSerializer, CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, DeleteCategoryRequestSerializer, ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, RetrieveCategoryResponseSerializer, UpdateCategoryRequestSerializer
 from src.core.category.application.use_cases.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.get_category import GetCategory, GetCategoryRequest
 from src.core.category.application.use_cases.list_category import (
@@ -85,6 +86,36 @@ class CategoryViewSet(viewsets.ViewSet):
         except CategoryNotFound:
             return Response(status=HTTP_404_NOT_FOUND)
         
+        return Response(status=HTTP_204_NO_CONTENT)
+    
+    def destroy(self, request: Request, pk: str = None) -> Response:
+        serializer = DeleteCategoryRequestSerializer(data={'id': pk})
+        serializer.is_valid(raise_exception=True)
+        
+        use_case = DeleteCategory(repository=DjangoORMCategoryRepository())
+        
+        try:
+            use_case.execute(DeleteCategoryRequest(id=serializer.validated_data['id']))
+        except CategoryNotFound:
+            return Response(status=HTTP_404_NOT_FOUND)
+        
+        return Response(status=HTTP_204_NO_CONTENT)
+    
+    def partial_update(self, request: Request, pk: str = None) -> Response:
+        serializer = UpdateCategoryRequestSerializer(
+            data = {
+                **request.data,
+                "id": pk
+            },
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        input = UpdateCategoryRequest(**serializer.validated_data)
+        use_case = UpdateCategory(repository=DjangoORMCategoryRepository())
+        try:
+            use_case.execute(request=input)
+        except CategoryNotFound:
+            return Response(status=HTTP_404_NOT_FOUND)
         return Response(status=HTTP_204_NO_CONTENT)
         
         

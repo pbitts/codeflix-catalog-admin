@@ -202,7 +202,7 @@ class TestUpdateCategoryAPI:
         assert updated_category.description == "Updated Movie description"
         assert updated_category.is_active is False
     
-    def test_when_category_doesnot_exist_tehn_return_404(self):
+    def test_when_category_doesnot_exist_then_return_404(self):
         response = APIClient().put(
             f'/api/categories/{uuid.uuid4()}/', 
             data={
@@ -213,4 +213,158 @@ class TestUpdateCategoryAPI:
         )
         
         assert response.status_code == HTTP_404_NOT_FOUND
+        
+@pytest.mark.django_db
+class TestDeleteCategoryAPI:
+    def test_delete_category_invalid_id_return_400(self) -> None:
+        
+        response = APIClient().delete('/api/categories/123123123/')
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        
+    def test_delete_category_when_exists(
+        self,
+        category_movie: Category,
+        category_documentary: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        category_repository.save(category_documentary)
+        
+        response = APIClient().delete(f'/api/categories/{category_movie.id}/')
+        
+        assert response.status_code == HTTP_204_NO_CONTENT
+        assert category_repository.list() == [category_documentary]
     
+    def test_delete_category_not_found_return_404(self) -> None:
+        
+        response = APIClient().delete(f'/api/categories/{uuid.uuid4()}/')
+        
+        assert response.status_code == HTTP_404_NOT_FOUND
+    
+
+@pytest.mark.django_db
+class TestPartialUpdateCategoryAPI:
+    def test_update_name_invalid_id_return_400(self) -> None:
+        
+        response = APIClient().patch(
+            '/api/categories/123123123/', 
+            data={
+                "name": "Updated Movie"
+                }
+        )
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "id": ["Must be a valid UUID."],
+        }
+    
+    def test_update_name_invalid_name_return_400(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().patch(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "name": ""
+                }
+        )
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "name": ["This field may not be blank."],
+        }
+    
+    def test_update_name_inavlid_size_return_400(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().patch(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "name": "x" * 256
+                }
+        )
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "name": ["Ensure this field has no more than 255 characters."],
+        }
+    
+    def test_update_name_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().patch(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "name": "Updated Movie"
+                }
+        )
+        
+        assert response.status_code == HTTP_204_NO_CONTENT
+        
+        updated_category = category_repository.get_by_id(category_movie.id)
+        
+        assert updated_category.name == "Updated Movie"
+        assert updated_category.description == category_movie.description
+        assert updated_category.is_active is category_movie.is_active
+    
+    def test_update_description_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().patch(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "description": "Updated Movie description"
+                }
+        )
+        
+        assert response.status_code == HTTP_204_NO_CONTENT
+        
+        updated_category = category_repository.get_by_id(category_movie.id)
+        
+        assert updated_category.name == category_movie.name
+        assert updated_category.description == "Updated Movie description"
+        assert updated_category.is_active is category_movie.is_active
+    
+    def test_update_is_active_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().patch(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "is_active": False
+                }
+        )
+        
+        assert response.status_code == HTTP_204_NO_CONTENT
+        
+        updated_category = category_repository.get_by_id(category_movie.id)
+        
+        assert updated_category.name == category_movie.name
+        assert updated_category.description == category_movie.description
+        assert updated_category.is_active is False
