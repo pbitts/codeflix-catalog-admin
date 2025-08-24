@@ -1,10 +1,12 @@
 import uuid
+from uuid import UUID
 import pytest
 from rest_framework.test import APIClient
 from rest_framework.status import (
     HTTP_200_OK, 
     HTTP_400_BAD_REQUEST, 
-    HTTP_404_NOT_FOUND)
+    HTTP_404_NOT_FOUND,
+    HTTP_201_CREATED)
 
 from src.core.category.domain.category import Category
 from django_project.category_app.repository import DjangoORMCategoryRepository
@@ -29,7 +31,7 @@ def category_repository() -> DjangoORMCategoryRepository:
     return DjangoORMCategoryRepository()
     
 @pytest.mark.django_db
-class TestCategoryAPI:
+class TesListCategoryAPI:
     def test_list_categories(
         self,
         category_movie: Category,
@@ -43,7 +45,8 @@ class TestCategoryAPI:
         
         response = APIClient().get('/api/categories/')
         
-        expected_data = [
+        expected_data = {
+            "data": [
             {
                 "id": str(category_movie.id),
                 "name": category_movie.name,
@@ -56,9 +59,11 @@ class TestCategoryAPI:
                 "description": category_documentary.description,
                 "is_active": category_documentary.is_active
             }
-        ]
+        ],
+        }
         
         assert response.status_code == HTTP_200_OK
+        assert len(response.data["data"]) == 2
         assert response.data == expected_data
         
 @pytest.mark.django_db        
@@ -82,10 +87,11 @@ class TestRetrieveCategoryAPI:
         response = APIClient().get(f'/api/categories/{category_movie.id}/')
         
         expected_data = {
-            "id": str(category_movie.id),
-            "name": category_movie.name,
-            "description": category_movie.description,
-            "is_active": category_movie.is_active
+            'data': 
+                {"id": str(category_movie.id),
+                "name": category_movie.name,
+                "description": category_movie.description,
+                "is_active": category_movie.is_active}
         }
         
         assert response.status_code == HTTP_200_OK
@@ -96,3 +102,48 @@ class TestRetrieveCategoryAPI:
         response = APIClient().get(f'/api/categories/{uuid.uuid4()}/')
         
         assert response.status_code == HTTP_404_NOT_FOUND
+
+@pytest.mark.django_db
+class TestCreateCategoryAPI:
+    def test_when_payload_is_invalid_then_return_400(self) -> None:
+        response = APIClient().post(
+            '/api/categories/', 
+            data={
+                "name": "", 
+                "description": "some description"
+                }
+        )
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+    
+    def test_when_payload_is_valid_then_create_category_and_return_201(
+        self,
+        category_repository: DjangoORMCategoryRepository
+        ) -> None:
+        
+        response = APIClient().post(
+            '/api/categories/', 
+            data={
+                "name": "Movie", 
+                "description": "Movie description"
+                }
+        )
+        
+        assert response.status_code == HTTP_201_CREATED
+        created_category_id = uuid.UUID(response.data["id"])
+        
+        saved_category = category_repository.get_by_id(created_category_id)
+        
+        assert saved_category == Category(
+            id=created_category_id,
+            name="Movie",
+            description="Movie description",
+        )
+        
+        assert category_repository.list() == [
+            Category(
+                id=uuid.UUID(response.data["id"]),
+                name="Movie",
+                description="some description",
+            )
+        ]
