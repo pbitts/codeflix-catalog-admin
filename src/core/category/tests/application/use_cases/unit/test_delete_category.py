@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from src.core.category.application.use_cases.exceptions import CategoryNotFound
-from src.core.category.application.category_repository import CategoryRepository
+from src.core.category.domain.category_repository import CategoryRepository
 from src.core.category.application.use_cases.delete_category import DeleteCategory, DeleteCategoryRequest
 from src.core.category.domain.category import Category
 
