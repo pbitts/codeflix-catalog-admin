@@ -4,9 +4,11 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework.status import (
     HTTP_200_OK, 
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST, 
-    HTTP_404_NOT_FOUND,
-    HTTP_201_CREATED)
+    HTTP_404_NOT_FOUND
+    )
 
 from src.core.category.domain.category import Category
 from django_project.category_app.repository import DjangoORMCategoryRepository
@@ -115,6 +117,9 @@ class TestCreateCategoryAPI:
         )
         
         assert response.status_code == HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "name": ["This field may not be blank."],
+        }
     
     def test_when_payload_is_valid_then_create_category_and_return_201(
         self,
@@ -147,3 +152,65 @@ class TestCreateCategoryAPI:
                 description="some description",
             )
         ]
+
+
+@pytest.mark.django_db
+class TestUpdateCategoryAPI:
+    def test_when_payload_is_invalid_then_return_400(
+        self
+        ) -> None:
+        
+        response = APIClient().put(
+            f'/api/categories/112233/', 
+            data={
+                "name": "", 
+                "description": "some description"
+                # is_active is missing
+                },
+            format='json'
+        )
+        
+        assert response.status_code == HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "id": ["Must be a valid UUID."],
+            "name": ["This field may not be blank."],
+            "is_active": ["This field is required."]
+        }
+    
+    def test_when_payload_is_valid_then_update_category_and_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ) -> None:
+        
+        category_repository.save(category_movie)
+        
+        response = APIClient().put(
+            f'/api/categories/{category_movie.id}/', 
+            data={
+                "name": "Updated Movie", 
+                "description": "Updated Movie description",
+                "is_active": False
+                }
+        )
+        
+        assert response.status_code == HTTP_204_NO_CONTENT
+        
+        updated_category = category_repository.get_by_id(category_movie.id)
+        
+        assert updated_category.name == "Updated Movie"
+        assert updated_category.description == "Updated Movie description"
+        assert updated_category.is_active is False
+    
+    def test_when_category_doesnot_exist_tehn_return_404(self):
+        response = APIClient().put(
+            f'/api/categories/{uuid.uuid4()}/', 
+            data={
+                "name": "Updated Movie", 
+                "description": "Updated Movie description",
+                "is_active": False
+                }
+        )
+        
+        assert response.status_code == HTTP_404_NOT_FOUND
+    
