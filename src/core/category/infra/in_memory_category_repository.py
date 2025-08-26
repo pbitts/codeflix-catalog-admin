@@ -12,7 +12,7 @@ class InMemoryCategoryRepository(CategoryRepository):
         self.categories.append(category)
     
     def get_by_id(self, id: UUID) -> Category | None:
-        return next((Category for Category in self.categories if Category.id == id), None)
+        return next((category for category in self.categories if category.id == id), None)
     
     def delete(self, id: UUID) -> None:
         Category = self.get_by_id(id)
