@@ -14,7 +14,7 @@ from rest_framework.status import (
 from src.core.category.application.use_cases.delete_category import DeleteCategory, DeleteCategoryRequest
 from src.core.category.application.use_cases.update_category import UpdateCategory, UpdateCategoryRequest
 from src.core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest
-from django_project.category_app.serializers import CategoryResponseSerializer, CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, DeleteCategoryRequestSerializer, ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, RetrieveCategoryResponseSerializer, UpdateCategoryRequestSerializer
+from src.django_project.category_app.serializers import CategoryResponseSerializer, CreateCategoryRequestSerializer, CreateCategoryResponseSerializer, DeleteCategoryRequestSerializer, ListCategoryResponseSerializer, RetrieveCategoryRequestSerializer, RetrieveCategoryResponseSerializer, UpdateCategoryRequestSerializer
 from src.core.category.application.use_cases.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.get_category import GetCategory, GetCategoryRequest
 from src.core.category.application.use_cases.list_category import (
@@ -22,7 +22,7 @@ from src.core.category.application.use_cases.list_category import (
     ListCategoryRequest,
     ListCategoryResponse
 )
-from django_project.category_app.repository import DjangoORMCategoryRepository
+from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
 class CategoryViewSet(viewsets.ViewSet):
     """

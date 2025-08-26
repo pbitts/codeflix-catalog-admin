@@ -11,7 +11,7 @@ from rest_framework.status import (
     )
 
 from src.core.category.domain.category import Category
-from django_project.category_app.repository import DjangoORMCategoryRepository
+from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
 
 @pytest.fixture
