@@ -3,12 +3,10 @@ import pytest
 
 from src.core.genre.infra.in_memory_genre_repository import InMemoryGenreRepository
 from src.core.category.infra.in_memory_category_repository import InMemoryCategoryRepository
-from src.core.genre.domain.genre import Genre
-from src.core.genre.application.exceptions import InvalidGenre, RelatedCategoriesNotFound
+from src.core.genre.application.exceptions import RelatedCategoriesNotFound
 from src.core.genre.application.use_cases.create_genre import CreateGenre
 from src.core.category.domain.category import Category
 from src.core.category.domain.category_repository import CategoryRepository
-from src.core.genre.domain.genre_repository import GenreRepository
 
 
 @pytest.fixture
