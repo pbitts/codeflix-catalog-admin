@@ -19,7 +19,7 @@ class Genre:
             raise ValueError("name cannot be empty")
 
     def __str__(self):
-        return f"Category(name={self.name} (is_active={self.is_active}))"
+        return f"Genre(name={self.name} (is_active={self.is_active}))"
 
     def __repr__(self):
         return self.__str__()
@@ -47,5 +47,9 @@ class Genre:
     
     def remove_category(self, category_id: uuid.UUID):
         self.categories.remove(category_id)
+        self.validate()
+        
+    def update_categories(self, categories: set[uuid.UUID]):
+        self.categories = categories
         self.validate()
     

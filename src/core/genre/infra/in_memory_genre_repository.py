@@ -12,7 +12,7 @@ class InMemoryGenreRepository(GenreRepository):
         self.genres.append(genre)
     
     def get_by_id(self, id: UUID) -> Genre | None:
-        return next((Genre for Genre in self.genres if Genre.id == id), None)
+        return next((genre for genre in self.genres if genre.id == id), None)
     
     def delete(self, id: UUID) -> None:
         Genre = self.get_by_id(id)
@@ -22,7 +22,7 @@ class InMemoryGenreRepository(GenreRepository):
         old_genre = self.get_by_id(genre.id) 
         if old_genre:
             self.genres.remove(old_genre)
-            self.genres.append(Genre)
+            self.genres.append(genre)
     
     def list(self) -> list[Genre]:
         # Return a copy of the genre list to avoid external modifications
