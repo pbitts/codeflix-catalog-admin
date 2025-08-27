@@ -176,3 +176,37 @@ class TestCreateAPI:
         response = APIClient().post(url, data)
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+class TestDeleteAPI:
+    def test_delete_non_existent_genre_raise_404(
+        self
+    ):
+        url = f"/api/genres/{uuid4()}/"
+        response = APIClient().delete(url)
+        
+        assert response.status_code == 404
+    
+    def test_delete_existent_genre(
+        self,
+        genre_drama: Genre,
+        genre_repository: DjangoORMCategoryRepository
+    ):
+        
+        genre_repository.save(genre_drama)
+        
+        url = f"/api/genres/{genre_drama.id}/"
+        response = APIClient().delete(url)
+        
+        assert response.status_code == 204
+        
+    def test_delete_invalid_pk(
+        self
+    ):
+        
+        url = "/api/genres/ivalid-pk/"
+        response = APIClient().delete(url)
+        
+        assert response.status_code == 400
+         
