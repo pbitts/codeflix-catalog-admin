@@ -28,8 +28,10 @@ def category_documentary():
 
 
 @pytest.fixture
-def category_repository() -> DjangoORMCategoryRepository:
+def category_repository(category_documentary, category_movie) -> DjangoORMCategoryRepository:
     repo = DjangoORMCategoryRepository()
+    repo.save(category_documentary)
+    repo.save(category_movie)
     return repo
 
 @pytest.fixture
@@ -66,9 +68,6 @@ class TestListAPI:
         genre_drama: Genre,
         genre_repository: DjangoORMGenreRepository,
     ) -> None:
-        
-        category_repository.save(category_documentary)
-        category_repository.save(category_movie)
         
         genre_repository.save(genre_romance)
         genre_repository.save(genre_drama)
@@ -114,3 +113,66 @@ class TestListAPI:
         assert response.data["data"][1]["is_active"] is True
         assert response.data["data"][1]["categories"] == []
 
+
+@pytest.mark.django_db
+class TestCreateAPI:
+    def test_create_genre_with_categories(
+        self,
+        category_movie: Category,
+        category_documentary: Category,
+        category_repository: DjangoORMCategoryRepository,
+        genre_repository: DjangoORMGenreRepository,
+    ) -> None:
+
+        url = "/api/genres/"
+        data = {
+            "name": "Romance",
+            "is_active": True,
+            "categories": [str(category_movie.id), str(category_documentary.id)],
+        }
+        response = APIClient().post(url, data)
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["id"]
+        created_genre_id = UUID(response.data["id"])
+        
+        saved_genre = genre_repository.get_by_id(created_genre_id)
+        assert saved_genre == Genre(
+            id=UUID(response.data["id"]),
+            name="Romance",
+            is_active=True,
+            categories={category_movie.id, category_documentary.id}
+        )
+    
+    def test_create_genre_invalid_categories_return_400(
+        self,
+        category_repository: DjangoORMCategoryRepository,
+        genre_repository: DjangoORMGenreRepository,
+    ) -> None:
+
+        url = "/api/genres/"
+        data = {
+            "name": "Romance",
+            "is_active": True,
+            "categories": [str(uuid4())],
+        }
+        response = APIClient().post(url, data)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        
+    def test_create_genre_invalid_name_return_400(
+        self,
+        category_repository: DjangoORMCategoryRepository,
+        genre_repository: DjangoORMGenreRepository,
+        category_movie: Category
+    ) -> None:
+
+        url = "/api/genres/"
+        data = {
+            "name": "",
+            "is_active": True,
+            "categories": [str(category_movie.id)],
+        }
+        response = APIClient().post(url, data)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
