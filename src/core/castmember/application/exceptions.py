@@ -1,8 +1,8 @@
-class RelatedCategoriesNotFound(Exception):
+class CastMemberNotFound(Exception):
     pass
 
-class InvalidGenre(Exception):
+class InvalidCastMemberType(Exception):
     pass
 
-class GenreNotFound(Exception):
+class InvalidCastMember(Exception):
     pass

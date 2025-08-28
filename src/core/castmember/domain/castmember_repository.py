@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.core.genre.domain.genre import Genre
+from src.core.castmember.domain.castmember import CastMember
 
 
-class GenreRepository(ABC):
+class CastMemberRepository(ABC):
     @abstractmethod
-    def save(self, genre):
+    def save(self, castmember):
         raise NotImplementedError
     
     @abstractmethod
-    def get_by_id(self, id: UUID) -> Genre | None:
+    def get_by_id(self, id: UUID) -> CastMember | None:
         raise NotImplementedError
     
     @abstractmethod
@@ -18,9 +18,9 @@ class GenreRepository(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def update(self, genre: Genre) -> None:
+    def update(self, castmember: CastMember) -> None:
         raise NotImplementedError
     
     @abstractmethod
-    def list(self) -> list[Genre]:
+    def list(self) -> list[CastMember]:
         raise NotImplementedError
