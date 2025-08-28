@@ -31,3 +31,10 @@ class CreateGenreOutputSerializer(serializers.Serializer):
 
 class DeleteGenreInputSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+
+
+class UpdateGenreInputSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField(max_length=255)
+    is_active = serializers.BooleanField(default=True)
+    categories = SetField(child=serializers.UUIDField())

@@ -25,7 +25,7 @@ class DjangoORMGenreRepository(GenreRepository):
             id=genre_model.id,
             name=genre_model.name,
             is_active=genre_model.is_active,
-            categories=[cat.id for cat in genre_model.categories.all()]
+            categories={cat.id for cat in genre_model.categories.all()}
         )
     
     def list(self) -> list[Genre]:
@@ -34,7 +34,7 @@ class DjangoORMGenreRepository(GenreRepository):
                 id=genre_model.id,
                 name=genre_model.name,
                 is_active=genre_model.is_active,
-                categories=[cat.id for cat in genre_model.categories.all()]
+                categories={cat.id for cat in genre_model.categories.all()}
             )
             for genre_model in GenreModel.objects.all()
         ]

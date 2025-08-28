@@ -5,13 +5,14 @@ from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from core.genre.application.use_cases.update_genre import UpdateGenre
 from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.application.use_cases.create_genre import CreateGenre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.core.genre.application.exceptions import GenreNotFound, InvalidGenre, RelatedCategoriesNotFound
 from src.core.genre.application.use_cases.list_genre import ListGenre
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
-from src.django_project.genre_app.serializers import CreateGenreInputSerializer, CreateGenreOutputSerializer, DeleteGenreInputSerializer, ListGenreOutputSerializer
+from src.django_project.genre_app.serializers import CreateGenreInputSerializer, CreateGenreOutputSerializer, DeleteGenreInputSerializer, ListGenreOutputSerializer, UpdateGenreInputSerializer
 
 
 class GenreViewSet(viewsets.ViewSet):
@@ -50,3 +51,27 @@ class GenreViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def update(self, request: Request, pk: str = None) -> Response:
+        serializer = UpdateGenreInputSerializer(
+            data = {
+                **request.data,
+                "id": pk
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        
+        input = UpdateGenre.Input(**serializer.validated_data)
+        use_case = UpdateGenre(
+            repository=DjangoORMGenreRepository(),
+            category_repository=DjangoORMCategoryRepository())
+        
+        try:
+            use_case.execute(input)
+        except (RelatedCategoriesNotFound, InvalidGenre) as err:
+            return Response(data={"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+        except GenreNotFound as err:
+            return Response(data={"error": str(err)}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
