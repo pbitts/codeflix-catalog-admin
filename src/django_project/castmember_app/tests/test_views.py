@@ -1,177 +1,123 @@
 from uuid import UUID, uuid4
 from django.test import override_settings
 from django.urls import reverse
+
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
-from src.core.category.domain.category import Category
-from src.core.genre.domain.genre import Genre
 
-from src.django_project.category_app.repository import DjangoORMCategoryRepository
-from src.django_project.genre_app.repository import DjangoORMGenreRepository
+from src.django_project.castmember_app.repository import DjangoORMCastMemberRepository
+from src.core.castmember.domain.castmember import CastMember
+
 
 
 @pytest.fixture
-def category_movie():
-    return Category(
-        name="Movie",
-        description="Movie description",
+def actor_castmember() -> CastMember:
+    return CastMember(
+        name="Reinaldo",
+        type='ACTOR'
     )
 
 
 @pytest.fixture
-def category_documentary():
-    return Category(
-        name="Documentary",
-        description="Documentary description",
+def director_castmember() -> CastMember:
+    return CastMember(
+        name="Diana",
+        type='DIRECTOR'
     )
 
 
 @pytest.fixture
-def category_repository(category_documentary, category_movie) -> DjangoORMCategoryRepository:
-    repo = DjangoORMCategoryRepository()
-    repo.save(category_documentary)
-    repo.save(category_movie)
-    return repo
-
-@pytest.fixture
-def genre_romance(category_movie, category_documentary) -> Genre:
-    return Genre(
-        name="Romance",
-        is_active=True,
-        categories={category_documentary.id, category_movie.id},
-    )
-
-
-@pytest.fixture
-def genre_drama() -> Genre:
-    return Genre(
-        name="Drama",
-        is_active=True,
-        categories=set(),
-    )
-
-
-@pytest.fixture
-def genre_repository() -> DjangoORMGenreRepository:
-    return DjangoORMGenreRepository()
+def castmember_repository() -> DjangoORMCastMemberRepository:
+    return DjangoORMCastMemberRepository()
 
 
 @pytest.mark.django_db
 class TestListAPI:
-    def test_list_genres_and_categories(
+    def test_list_castmember(
         self,
-        category_movie: Category,
-        category_documentary: Category,
-        category_repository: DjangoORMCategoryRepository,
-        genre_romance: Genre,
-        genre_drama: Genre,
-        genre_repository: DjangoORMGenreRepository,
+        actor_castmember: CastMember,
+        director_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
+        
     ) -> None:
         
-        genre_repository.save(genre_romance)
-        genre_repository.save(genre_drama)
+        castmember_repository.save(actor_castmember)
+        castmember_repository.save(director_castmember)
         
 
-        url = "/api/genres/"
+        url = "/api/cast_members/"
         response = APIClient().get(url)
 
-        # TODO: Quando implementarmos ordenação, poderemos comparar expected_data
-        # expected_data = {
-        #     "data": [
-        #         {
-        #             "id": str(genre_romance.id),
-        #             "name": "Romance",
-        #             "is_active": True,
-        #             "categories": [
-        #                 str(category_documentary.id),
-        #                 str(category_movie.id),
-        #             ],
-        #         },
-        #         {
-        #             "id": str(genre_drama.id),
-        #             "name": "Drama",
-        #             "is_active": True,
-        #             "categories": [],
-        #         },
-        #     ]
-        # }
-        
-        # assert response.data == expected_data
-        print(response.data)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["data"]
-        assert response.data["data"][0]["id"] == str(genre_romance.id)
-        assert response.data["data"][0]["name"] == "Romance"
-        assert response.data["data"][0]["is_active"] is True
-        assert set(response.data["data"][0]["categories"]) == {
-            str(category_documentary.id),
-            str(category_movie.id),
-        }
-        assert response.data["data"][1]["id"] == str(genre_drama.id)
-        assert response.data["data"][1]["name"] == "Drama"
-        assert response.data["data"][1]["is_active"] is True
-        assert response.data["data"][1]["categories"] == []
+        assert response.data["data"][0]["id"] == str(actor_castmember.id)
+        assert response.data["data"][0]["name"] == "Reinaldo"
+        assert response.data["data"][0]["type"] == 'ACTOR'
+        
+        assert response.data["data"][1]["id"] == str(director_castmember.id)
+        assert response.data["data"][1]["name"] == "Diana"
+        assert response.data["data"][1]["type"] == 'DIRECTOR'
 
 
 @pytest.mark.django_db
 class TestCreateAPI:
-    def test_create_genre_with_categories(
-        self,
-        category_movie: Category,
-        category_documentary: Category,
-        category_repository: DjangoORMCategoryRepository,
-        genre_repository: DjangoORMGenreRepository,
+    def test_create_castmember(
+         self,
+        actor_castmember: CastMember,
+        director_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
+        
     ) -> None:
+        
 
-        url = "/api/genres/"
+        url = "/api/cast_members/"
+
         data = {
-            "name": "Romance",
-            "is_active": True,
-            "categories": [str(category_movie.id), str(category_documentary.id)],
+            "name": "Ana",
+            "type": 'ACTOR'
         }
         response = APIClient().post(url, data)
         
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["id"]
-        created_genre_id = UUID(response.data["id"])
+        created_castmember_id = UUID(response.data["id"])
         
-        saved_genre = genre_repository.get_by_id(created_genre_id)
-        assert saved_genre == Genre(
-            id=UUID(response.data["id"]),
-            name="Romance",
-            is_active=True,
-            categories={category_movie.id, category_documentary.id}
+        saved_castmember = castmember_repository.get_by_id(created_castmember_id)
+
+        test_cast = CastMember(
+            id=created_castmember_id,
+            name="Ana",
+            type='ACTOR'
         )
+
+        assert saved_castmember.id == test_cast.id
+        assert saved_castmember.name == test_cast.name
+        assert test_cast.type == saved_castmember.type
     
-    def test_create_genre_invalid_categories_return_400(
+    def test_create_castmember_invalid_type_return_400(
         self,
-        category_repository: DjangoORMCategoryRepository,
-        genre_repository: DjangoORMGenreRepository,
+        castmember_repository: DjangoORMCastMemberRepository
     ) -> None:
 
-        url = "/api/genres/"
+        url = "/api/cast_members/"
         data = {
-            "name": "Romance",
-            "is_active": True,
-            "categories": [str(uuid4())],
+            "name": "Bruna",
+            "type": 'Diretora'
         }
         response = APIClient().post(url, data)
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         
-    def test_create_genre_invalid_name_return_400(
+    def test_create_castmember_invalid_name_return_400(
         self,
-        category_repository: DjangoORMCategoryRepository,
-        genre_repository: DjangoORMGenreRepository,
-        category_movie: Category
+        castmember_repository: DjangoORMCastMemberRepository
     ) -> None:
 
-        url = "/api/genres/"
+        url = "/api/cast_members/"
         data = {
             "name": "",
-            "is_active": True,
-            "categories": [str(category_movie.id)],
+            "type": 'ACTOR'
         }
         response = APIClient().post(url, data)
         
@@ -180,23 +126,23 @@ class TestCreateAPI:
 
 @pytest.mark.django_db
 class TestDeleteAPI:
-    def test_delete_non_existent_genre_raise_404(
+    def test_delete_non_existent_castmember_raise_404(
         self
     ):
-        url = f"/api/genres/{uuid4()}/"
+        url = f"/api/cast_members/{uuid4()}/"
         response = APIClient().delete(url)
         
         assert response.status_code == 404
     
     def test_delete_existent_genre(
         self,
-        genre_drama: Genre,
-        genre_repository: DjangoORMCategoryRepository
+        director_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
     ):
         
-        genre_repository.save(genre_drama)
+        castmember_repository.save(director_castmember)
         
-        url = f"/api/genres/{genre_drama.id}/"
+        url = f"/api/cast_members/{director_castmember.id}/"
         response = APIClient().delete(url)
         
         assert response.status_code == 204
@@ -205,7 +151,7 @@ class TestDeleteAPI:
         self
     ):
         
-        url = "/api/genres/ivalid-pk/"
+        url = "/api/cast_members/ivalid-pk/"
         response = APIClient().delete(url)
         
         
@@ -213,76 +159,72 @@ class TestDeleteAPI:
 
 @pytest.mark.django_db
 class TestUpdateAPI:
-    def test_when_request_data_is_valid_then_update_genre(
+    def test_when_request_data_is_valid_then_update_castmember(
         self,
-        category_repository: DjangoORMCategoryRepository,
-        category_movie: Category,
-        category_documentary: Category,
-        genre_repository: DjangoORMGenreRepository,
-        genre_romance: Genre
+        actor_castmember: CastMember,
+        director_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
     ) -> None:
-        genre_repository.save(genre_romance)
-        saved_genre = genre_repository.get_by_id(genre_romance.id)
-        assert saved_genre
-        assert saved_genre.name == "Romance"
+        castmember_repository.save(actor_castmember)
+        saved_castmember = castmember_repository.get_by_id(actor_castmember.id)
+        assert saved_castmember
+        assert saved_castmember.name == "Reinaldo"
         
         
-        url = f"/api/genres/{str(genre_romance.id)}/"
+        url = f"/api/cast_members/{str(actor_castmember.id)}/"
         data = {
-            "name": "Drama",
-            "is_active": True,
-            "categories": [category_documentary.id]
+            "name": "Reinaldo 2",
+            "type": 'DIRECTOR'
         }
         response = APIClient().put(url, data=data)
         
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        updated_genre = genre_repository.get_by_id(genre_romance.id)
-        assert updated_genre.name == 'Drama'
-        assert updated_genre.is_active is True
-        assert updated_genre.categories == {category_documentary.id}
+        updated_castmember = castmember_repository.get_by_id(actor_castmember.id)
+        assert updated_castmember.name == 'Reinaldo 2'
+        assert updated_castmember.type == 'DIRECTOR'
     
     def test_when_request_data_is_invalid_then_return_400(
         self,
-        genre_drama: Genre,
+        director_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
     ) -> None:
-        url = f"/api/genres/{str(genre_drama.id)}/"
+        castmember_repository.save(director_castmember)
+        saved_castmember = castmember_repository.get_by_id(director_castmember.id)
+        assert saved_castmember
+        assert saved_castmember.name == "Diana"
+        
+        url = f"/api/cast_members/{director_castmember.id}/"
         data = {
             "name": "",
-            "is_active": True,
-            "categories": [],
+            "type": 'DIRECTOR',
         }
         response = APIClient().put(url, data=data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == {"name": ["This field may not be blank."]}
 
-    def test_when_related_categories_do_not_exist_then_return_400(
+    def test_when_type_do_not_exist_then_return_400(
         self,
-        category_repository: DjangoORMCategoryRepository,
-        category_movie: Category,
-        category_documentary: Category,
-        genre_repository: DjangoORMGenreRepository,
-        genre_romance: Genre,
+        actor_castmember: CastMember,
+        castmember_repository: DjangoORMCastMemberRepository
     ) -> None:
-        genre_repository.save(genre_romance)
+        castmember_repository.save(actor_castmember)
 
-        url = f"/api/genres/{str(genre_romance.id)}/"
+        url = f"/api/cast_members/{str(actor_castmember.id)}/"
         data = {
-            "name": "Romance",
-            "is_active": True,
-            "categories": [uuid4()],  # non-existent category
+            "name": "Reinaldo 1",
+            "type": 'Ator'
         }
         response = APIClient().put(url, data=data)
 
+        print(response.data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Categories with provided IDs not found" in response.data["error"]
 
-    def test_when_genre_does_not_exist_then_return_404(self) -> None:
-        url = f"/api/genres/{str(uuid4())}/"
+    def test_when_castmember_does_not_exist_then_return_404(self) -> None:
+        url = f"/api/cast_members/{str(uuid4())}/"
         data = {
-            "name": "Romance",
-            "is_active": True,
-            "categories": [],
+            "name": "Diego",
+            "type": 'ACTOR',
         }
         response = APIClient().put(url, data=data)
 

@@ -20,7 +20,7 @@ class DjangoORMCastMemberRepository(CastMemberRepository):
             castmember_model = CastMemberModel.objects.get(id=id)
         except CastMemberModel.DoesNotExist:
             return None
-        return CastMemberModel(
+        return CastMember(
             id=castmember_model.id,
             name=castmember_model.name,
             type=castmember_model.type
