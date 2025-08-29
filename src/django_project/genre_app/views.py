@@ -5,7 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from core.genre.application.use_cases.update_genre import UpdateGenre
+from src.core.genre.application.use_cases.update_genre import UpdateGenre
 from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.application.use_cases.create_genre import CreateGenre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository

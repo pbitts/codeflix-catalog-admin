@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_extensions',
     'src.django_project.category_app',
-    'src.django_project.genre_app'
+    'src.django_project.genre_app',
+    'src.django_project.castmember_app'
 ]
 
 REST_FRAMEWORK = {

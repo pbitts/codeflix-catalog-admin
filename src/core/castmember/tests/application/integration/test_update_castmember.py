@@ -27,7 +27,7 @@ class TestUpdateCastMember:
         assert saved_actor == actor
         assert saved_director == director
         assert saved_actor.type == 'ACTOR'
-        assert saved_director.type == 'DIRECTOR'
+        assert saved_director.type == 'DIRECTOR' 
         
         use_case = UpdateCastMember(
             repository=castmember_repository
