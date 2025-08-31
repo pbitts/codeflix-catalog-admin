@@ -149,7 +149,7 @@ class TestCreateCategoryAPI:
             Category(
                 id=uuid.UUID(response.data["id"]),
                 name="Movie",
-                description="some description",
+                description="Movie description",
             )
         ]
 

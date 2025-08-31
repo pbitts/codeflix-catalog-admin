@@ -1,33 +1,36 @@
 from dataclasses import dataclass, field
 import uuid
 
+from src.core._shared.entity import Entity
+
+
 @dataclass
-class Genre:
+class Genre(Entity):
     name: str
     is_active: bool = True
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
     categories: set[uuid.UUID] = field(default_factory=set)
+    
     
     def __post_init__(self):
         self.validate()
     
     def validate(self):
         if len(self.name) > 255:
-            raise ValueError("name cannot be longer than 255")
+            # raise ValueError("name cannot be longer than 255")
+            self.notification.add_error("name cannot be longer than 255")
 
         if not self.name:
-            raise ValueError("name cannot be empty")
+            # raise ValueError("name cannot be empty")
+            self.notification.add_error("name cannot be empty")
+        
+        if self.notification.has_errors:
+            raise ValueError(self.notification.messages)
 
     def __str__(self):
         return f"Genre(name={self.name} (is_active={self.is_active}))"
 
     def __repr__(self):
         return self.__str__()
-
-    def __eq__(self, other):
-        if not isinstance(other, Genre):
-            return False
-        return self.id == other.id
 
     def change_name(self, name = None):
         self.name = name

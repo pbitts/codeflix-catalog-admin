@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 import uuid
 
+from src.core._shared.entity import Entity
+
 
 class CastMemberType(StrEnum):
     ACTOR = "ACTOR"
@@ -9,34 +11,34 @@ class CastMemberType(StrEnum):
     
     
 @dataclass
-class CastMember:
+class CastMember(Entity):
     name: str
     type: CastMemberType
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
     
     def __post_init__(self):
         self.validate()
     
     def validate(self):
         if len(self.name) > 255:
-            raise ValueError("name cannot be longer than 255")
+            # raise ValueError("name cannot be longer than 255")
+            self.notification.add_error("name cannot be longer than 255")
 
-        if not self.name or len(self.name.strip()) == 0:
-            raise ValueError("name cannot be empty")
+        if not self.name:
+            # raise ValueError("name cannot be empty")
+            self.notification.add_error("name cannot be empty")
         
         if self.type not in[CastMemberType.ACTOR, CastMemberType.DIRECTOR]:
-            raise ValueError("Type must be either 'ACTOR' or 'DIRECTOR'")
+            # raise ValueError("Type must be either 'ACTOR' or 'DIRECTOR'")
+            self.notification.add_error("Type must be either 'ACTOR' or 'DIRECTOR'")
+        
+        if self.notification.has_errors:
+            raise ValueError(self.notification.messages)
 
     def __str__(self):
         return f"CastMember(name={self.name} (type={self.type}))"
 
     def __repr__(self):
         return self.__str__()
-
-    def __eq__(self, other):
-        if not isinstance(other, CastMember):
-            return False
-        return self.id == other.id
 
     def change_name(self, name = None):
         self.name = name
