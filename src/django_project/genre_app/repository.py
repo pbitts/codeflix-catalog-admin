@@ -8,36 +8,46 @@ from src.django_project.genre_app.models import Genre as GenreModel
 class DjangoORMGenreRepository(GenreRepository):
     
     def save(self, genre: Genre):
+        genre_model = GenreModelMapper.to_model(genre)
         with transaction.atomic():
-            genre_model = GenreModel.objects.create(
-                id=genre.id,
-                name=genre.name,
-                is_active=genre.is_active,
-            )
+            genre_model.save()
             genre_model.categories.set(genre.categories)
+            
+        # with transaction.atomic():
+        #     genre_model = GenreModel.objects.create(
+        #         id=genre.id,
+        #         name=genre.name,
+        #         is_active=genre.is_active,
+        #     )
+        #     genre_model.categories.set(genre.categories)
     
     def get_by_id(self, id: UUID) -> Genre:
         try:
             genre_model = GenreModel.objects.get(id=id)
+            return GenreModelMapper.to_entity(genre_model)
         except GenreModel.DoesNotExist:
             return None
-        return Genre(
-            id=genre_model.id,
-            name=genre_model.name,
-            is_active=genre_model.is_active,
-            categories={cat.id for cat in genre_model.categories.all()}
-        )
+        # return Genre(
+        #     id=genre_model.id,
+        #     name=genre_model.name,
+        #     is_active=genre_model.is_active,
+        #     categories={cat.id for cat in genre_model.categories.all()}
+        # )
     
     def list(self) -> list[Genre]:
         return [
-            Genre(
-                id=genre_model.id,
-                name=genre_model.name,
-                is_active=genre_model.is_active,
-                categories={cat.id for cat in genre_model.categories.all()}
-            )
+            GenreModelMapper.to_entity(genre_model)
             for genre_model in GenreModel.objects.all()
         ]
+        # return [
+        #     Genre(
+        #         id=genre_model.id,
+        #         name=genre_model.name,
+        #         is_active=genre_model.is_active,
+        #         categories={cat.id for cat in genre_model.categories.all()}
+        #     )
+        #     for genre_model in GenreModel.objects.all()
+        # ]
     
     def update(self, genre: Genre) -> None:
         try:
@@ -55,3 +65,23 @@ class DjangoORMGenreRepository(GenreRepository):
     
     def delete(self, id: UUID) -> None:
         GenreModel.objects.filter(id=id).delete()
+
+class GenreModelMapper:
+    @staticmethod
+    def to_model(genre: Genre) -> GenreModel:
+        """Converte entidade de domínio para modelo ORM (sem salvar categorias)."""
+        return GenreModel(
+            id=genre.id,
+            name=genre.name,
+            is_active=genre.is_active,
+        )
+
+    @staticmethod
+    def to_entity(genre_model: GenreModel) -> Genre:
+        """Converte modelo ORM para entidade de domínio."""
+        return Genre(
+            id=genre_model.id,
+            name=genre_model.name,
+            is_active=genre_model.is_active,
+            categories={cat.id for cat in genre_model.categories.all()}
+        )
