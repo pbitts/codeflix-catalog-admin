@@ -30,16 +30,17 @@ class TestListCategory:
         assert response == ListCategoryResponse(
             data=[
                 CategoryOutput(
-                    id=category1.id,
-                    name=category1.name,
-                    description=category1.description,
-                    is_active=category1.is_active
-                ),
-                CategoryOutput(
                     id=category2.id,
                     name=category2.name,
                     description=category2.description,
                     is_active=category2.is_active
+                ),
+                CategoryOutput(
+                    id=category1.id,
+                    name=category1.name,
+                    description=category1.description,
+                    is_active=category1.is_active
                 )
+                
             ]
         )
