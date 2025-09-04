@@ -16,8 +16,13 @@ from src.core.castmember.application.use_cases.list_castmember import ListCastMe
 
 class CastMemberViewSet(viewsets.ViewSet):
     def list(self, request: Request) -> Response:
+        order_by = request.query_params.get('order_by', 'name')
+        current_page = int(request.query_params.get('current_page', '1'))
+        
         use_case = ListCastMember(repository=DjangoORMCastMemberRepository())
-        output: ListCastMember.Output = use_case.execute(ListCastMember.Input())
+        output: ListCastMember.Output = use_case.execute(ListCastMember.Input(
+            order_by=order_by, current_page=current_page
+        ))
         response_serializer = ListCastMemberOutputSerializer(output)
         
         return Response(data=response_serializer.data, status=status.HTTP_200_OK)

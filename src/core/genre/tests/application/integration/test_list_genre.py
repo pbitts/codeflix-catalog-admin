@@ -1,3 +1,4 @@
+from src.core._shared.meta import ListOutputMeta
 from src.core.genre.application.use_cases.list_genre import GenreOutput, ListGenre
 from src.core.category.domain.category import Category
 from src.core.category.infra.in_memory_category_repository import InMemoryCategoryRepository
@@ -49,7 +50,12 @@ class TestListGenre:
                     is_active=comedy_genre.is_active,
                     categories=comedy_genre.categories
                 )
-            ]
+            ],
+             meta=ListOutputMeta(
+                current_page=1,
+                per_page=2,
+                total=2
+            )
         )
     
     def test_list_empty_genre_list(
@@ -63,4 +69,6 @@ class TestListGenre:
         output = use_case.execute(input_data=ListGenre.Input())
         
         assert len(output.data) == 0
-        assert output == ListGenre.Output(data=[])
+        assert output == ListGenre.Output(data=[], meta=ListOutputMeta(current_page=1,
+                                                      per_page=2,
+                                                      total=0))

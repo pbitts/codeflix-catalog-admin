@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from uuid import UUID
 
+from src.core._shared.meta import ListOutputMeta
 from src.core.category.domain.category_repository import CategoryRepository
 
 
@@ -16,17 +17,11 @@ class CategoryOutput:
     description: str
     is_active: bool
 
-@dataclass
-class ListOutputMeta:
-    current_page: int
-    per_page: int
-    total: int
-
     
 @dataclass
 class ListCategoryResponse:
     data: list[CategoryOutput]
-    meta: ListOutputMeta = field(default_category=ListOutputMeta)
+    meta: ListOutputMeta = field(default_factory=ListOutputMeta)
 
 class ListCategory:
     def __init__(self, repository: CategoryRepository):

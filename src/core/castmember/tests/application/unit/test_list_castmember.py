@@ -1,6 +1,7 @@
 from unittest.mock import create_autospec
 import pytest
 
+from src.core._shared.meta import ListOutputMeta
 from core.castmember.application.use_cases.list_castmember import CastMemberOutput, ListCastMember
 from core.castmember.domain.castmember import CastMember
 from core.castmember.domain.castmember_repository import CastMemberRepository
@@ -26,7 +27,9 @@ class TestListCastMember:
         
         output = use_case.execute(input=ListCastMember.Input())
         
-        assert output == ListCastMember.Output(data=[])
+        assert output == ListCastMember.Output(data=[], meta=ListOutputMeta(current_page=1,
+                                                      per_page=2,
+                                                      total=0))
         mock_castmember_repository.list.assert_called_once()
     
     def test_when_castmembers_exist_then_return_genre_list(
@@ -62,7 +65,12 @@ class TestListCastMember:
                     name=director.name,
                     type=director.type
                 )
-            ]
+            ],
+            meta=ListOutputMeta(
+                current_page=1,
+                per_page=2,
+                total=2
+            )
         )
         mock_castmember_repository.list.assert_called_once()
     

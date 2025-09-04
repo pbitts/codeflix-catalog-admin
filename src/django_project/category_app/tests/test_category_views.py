@@ -33,8 +33,9 @@ def category_repository() -> DjangoORMCategoryRepository:
     return DjangoORMCategoryRepository()
     
 @pytest.mark.django_db
-class TesListCategoryAPI:
-    def test_list_categories(
+class TestListCategoryAPI:
+    
+    def test_list_categories_api(
         self,
         category_movie: Category,
         category_documentary: Category,
@@ -49,21 +50,27 @@ class TesListCategoryAPI:
         
         expected_data = {
             "data": [
+                            {
+                "id": str(category_documentary.id),
+                "name": category_documentary.name,
+                "description": category_documentary.description,
+                "is_active": category_documentary.is_active
+            },
             {
                 "id": str(category_movie.id),
                 "name": category_movie.name,
                 "description": category_movie.description,
                 "is_active": category_movie.is_active
-            },
-            {
-                "id": str(category_documentary.id),
-                "name": category_documentary.name,
-                "description": category_documentary.description,
-                "is_active": category_documentary.is_active
             }
         ],
+            'meta':{
+                "current_page": 1,
+                "total": 2,
+                "per_page": 2
+            }
         }
         
+        assert response.data['meta'] == expected_data['meta']
         assert response.status_code == HTTP_200_OK
         assert len(response.data["data"]) == 2
         assert response.data == expected_data
