@@ -9,7 +9,10 @@ class TestCreateAndEditCastMember:
         
         # Verifies empty list
         list_response = api_client.get("/api/cast_members/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         
         # Creates a new castmember
         create_response = api_client.post(
@@ -32,7 +35,11 @@ class TestCreateAndEditCastMember:
                     "name": "Monica",
                     "type": "DIRECTOR"
                 }
-            ]
+            ],
+            "meta": {
+                    "per_page": 2, 
+                    "total":1, 
+                    "current_page":1}
         }
         
         # Updates the created castmember
@@ -55,7 +62,11 @@ class TestCreateAndEditCastMember:
                 "name": "Monica Updated",
                 "type": 'ACTOR'
                 }
-            ]
+            ],
+            "meta": {
+                    "per_page": 2, 
+                    "total":1, 
+                    "current_page":1}
         }
     
 
@@ -66,7 +77,10 @@ class TestCreateAndDeleteCastMember:
         
         # Verifies empty list
         list_response = api_client.get("/api/cast_members/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         
         # Creates a new castmember
         create_response = api_client.post(
@@ -89,7 +103,11 @@ class TestCreateAndDeleteCastMember:
                     "name": "Magali",
                 "type": "ACTOR"
                 }
-            ]
+            ],
+            "meta": {
+                        "per_page": 2, 
+                        "total":1, 
+                        "current_page":1}
         }
         
         # Deletes the created castmember
@@ -99,5 +117,8 @@ class TestCreateAndDeleteCastMember:
         
         # Verifies empty list again
         list_response = api_client.get("/api/cast_members/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         
