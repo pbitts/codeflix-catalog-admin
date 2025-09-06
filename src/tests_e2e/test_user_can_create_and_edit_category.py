@@ -9,7 +9,10 @@ class TestCreateAndEditCategory:
         
         # Verifies empty list
         list_response = api_client.get("/api/categories/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         
         # Creates a new category
         create_response = api_client.post(
@@ -33,7 +36,11 @@ class TestCreateAndEditCategory:
                     "description": "Category for movies",
                     "is_active": True,
                 }
-            ]
+            ],
+            "meta": {
+                                                    "per_page": 2, 
+                                                    "total":1, 
+                                                    "current_page":1}
         }
         
         # Updates the created category
@@ -58,7 +65,11 @@ class TestCreateAndEditCategory:
                     "description": "Category for films",
                     "is_active": False,
                 }
-            ]
+            ],
+            "meta": {
+                    "per_page": 2, 
+                    "total":1, 
+                    "current_page":1}
         }
     
 
@@ -69,7 +80,10 @@ class TestCreateAndDeleteCategory:
         
         # Verifies empty list
         list_response = api_client.get("/api/categories/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         
         # Creates a new category
         create_response = api_client.post(
@@ -93,7 +107,11 @@ class TestCreateAndDeleteCategory:
                     "description": "Category for movies",
                     "is_active": True,
                 }
-            ]
+            ],
+            "meta": {
+                    "per_page": 2, 
+                    "total":1, 
+                    "current_page":1}
         }
         
         # Deletes the created category
@@ -103,5 +121,8 @@ class TestCreateAndDeleteCategory:
         
         # Verifies empty list again
         list_response = api_client.get("/api/categories/")
-        assert list_response.data == {"data": []}
+        assert list_response.data == {"data": [], "meta": {
+                                                    "per_page": 2, 
+                                                    "total":0, 
+                                                    "current_page":1}}
         

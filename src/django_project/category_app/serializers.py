@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from src.django_project._shared.serializers import ListOutputMetaSerializer
+
 
 class CategoryResponseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
@@ -10,6 +12,7 @@ class CategoryResponseSerializer(serializers.Serializer):
     
 class ListCategoryResponseSerializer(serializers.Serializer):
     data = CategoryResponseSerializer(many=True)
+    meta = ListOutputMetaSerializer()
     
     
 class RetrieveCategoryRequestSerializer(serializers.Serializer):

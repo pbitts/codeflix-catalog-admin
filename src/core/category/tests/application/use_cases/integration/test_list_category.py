@@ -1,4 +1,5 @@
 
+from src.core._shared.meta import ListOutputMeta
 from src.core.category.infra.in_memory_category_repository import InMemoryCategoryRepository
 from src.core.category.application.use_cases.list_category import CategoryOutput, ListCategory, ListCategoryRequest, ListCategoryResponse
 from src.core.category.domain.category import Category
@@ -13,7 +14,9 @@ class TestListCategory:
         request = ListCategoryRequest()
         response = use_case.execute(request)
         
-        assert response == ListCategoryResponse(data=[])
+        assert response == ListCategoryResponse(data=[], meta=ListOutputMeta(current_page=1,
+                                                      per_page=2,
+                                                      total=0))
     
     def test_return_list_of_categories(self):
         
@@ -29,16 +32,22 @@ class TestListCategory:
         assert response == ListCategoryResponse(
             data=[
                 CategoryOutput(
-                    id=category1.id,
-                    name=category1.name,
-                    description=category1.description,
-                    is_active=category1.is_active
-                ),
-                CategoryOutput(
                     id=category2.id,
                     name=category2.name,
                     description=category2.description,
                     is_active=category2.is_active
+                ),
+                CategoryOutput(
+                    id=category1.id,
+                    name=category1.name,
+                    description=category1.description,
+                    is_active=category1.is_active
                 )
-            ]
+                
+            ],
+             meta=ListOutputMeta(
+                current_page=1,
+                per_page=2,
+                total=2
+            )
         )

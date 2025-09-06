@@ -1,5 +1,6 @@
 
 
+from src.core._shared.meta import ListOutputMeta
 from src.core.castmember.application.use_cases.list_castmember import ListCastMember, CastMemberOutput
 from src.core.castmember.domain.castmember import CastMember
 from src.core.castmember.infra.in_memory_castmember_repository import InMemoryCastMemberRepository
@@ -41,7 +42,12 @@ class TestListCastMember:
                     name=director.name,
                     type=director.type
                 )
-            ]
+            ],
+             meta=ListOutputMeta(
+                current_page=1,
+                per_page=2,
+                total=2
+            )
         )
     
     def test_list_empty_castmember_list(
@@ -55,4 +61,6 @@ class TestListCastMember:
         output = use_case.execute(ListCastMember.Input())
         
         assert len(output.data) == 0
-        assert output == ListCastMember.Output(data=[])
+        assert output == ListCastMember.Output(data=[], meta=ListOutputMeta(current_page=1,
+                                                      per_page=2,
+                                                      total=0))

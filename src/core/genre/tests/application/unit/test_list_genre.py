@@ -1,6 +1,7 @@
 from unittest.mock import create_autospec
 import pytest
 
+from src.core._shared.meta import ListOutputMeta
 from src.core.genre.application.use_cases.list_genre import GenreOutput, ListGenre
 from src.core.genre.domain.genre import Genre
 from src.core.category.domain.category import Category
@@ -48,7 +49,10 @@ class TestListGenre:
         
         output = use_case.execute(input_data=ListGenre.Input())
         
-        assert output == ListGenre.Output(data=[])
+        assert output == ListGenre.Output(data=[], meta=ListOutputMeta(
+                                                      current_page=1,
+                                                      per_page=2,
+                                                      total=0))
         mock_genre_repository.list.assert_called_once()
     
     def test_when_genres_exist_then_return_genre_list(
@@ -88,7 +92,11 @@ class TestListGenre:
                     is_active=comedy_genre.is_active,
                     categories=comedy_genre.categories
                 )
-            ]
+            ],
+            meta=ListOutputMeta(
+                                current_page=1,
+                                per_page=2,
+                                total=2)
         )
         mock_genre_repository.list.assert_called_once()
     

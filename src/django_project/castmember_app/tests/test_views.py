@@ -49,15 +49,28 @@ class TestListAPI:
         url = "/api/cast_members/"
         response = APIClient().get(url)
 
+        expected_data = {
+            "data": [
+                            {
+                "id": str(director_castmember.id),
+                "name": director_castmember.name,
+                "type": director_castmember.type,
+            },
+            {
+                "id": str(actor_castmember.id),
+                "name": actor_castmember.name,
+                "type": actor_castmember.type,
+            }
+        ],
+            'meta':{
+                "current_page": 1,
+                "total": 2,
+                "per_page": 2
+            }
+        }
+
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["data"]
-        assert response.data["data"][0]["id"] == str(actor_castmember.id)
-        assert response.data["data"][0]["name"] == "Reinaldo"
-        assert response.data["data"][0]["type"] == 'ACTOR'
-        
-        assert response.data["data"][1]["id"] == str(director_castmember.id)
-        assert response.data["data"][1]["name"] == "Diana"
-        assert response.data["data"][1]["type"] == 'DIRECTOR'
+        assert response.data == expected_data
 
 
 @pytest.mark.django_db

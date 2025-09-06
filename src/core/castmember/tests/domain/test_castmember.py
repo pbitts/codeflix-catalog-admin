@@ -39,7 +39,7 @@ class TestEquality:
     def test_when_castmember_have_same_id_they_are_equal(self):
         common_id = uuid.uuid4()
         castmember1 = CastMember(id=common_id, name='John', type='ACTOR')
-        castmember2 = CastMember(id=common_id, name='Rick', type='ACTOR')
+        castmember2 = CastMember(id=common_id, name='John', type='ACTOR')
         assert castmember1 == castmember2
 
     def test_equality_different_classes(self):

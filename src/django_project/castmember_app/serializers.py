@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from src.django_project._shared.serializers import ListOutputMetaSerializer
 from src.core.castmember.domain.castmember import CastMemberType
 
 
@@ -25,6 +26,7 @@ class CastMemberOutputSerializer(serializers.Serializer):
     
 class ListCastMemberOutputSerializer(serializers.Serializer):
     data = CastMemberOutputSerializer(many=True)
+    meta = ListOutputMetaSerializer()
     
     
 class CreateCastMemberInputSerializer(serializers.Serializer):
