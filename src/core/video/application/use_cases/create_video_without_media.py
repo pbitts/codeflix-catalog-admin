@@ -20,6 +20,7 @@ class CreateVideoWithoutMedia:
         launch_year: int
         duration: Decimal
         # published False as default
+        opened: bool
         rating: str
         categories: set[UUID]
         genres: set[UUID]
@@ -57,6 +58,7 @@ class CreateVideoWithoutMedia:
                 launch_year=input.launch_year,
                 duration=input.duration,
                 published=False,
+                opened=input.opened,
                 rating=input.rating,
                 categories=input.categories,
                 genres=input.genres,

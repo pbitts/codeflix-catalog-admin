@@ -24,7 +24,6 @@ class Rating(Enum):
     
 @dataclass(frozen=True)
 class ImageMedia:
-    id: UUID
     check_sum: str
     name: str
     location: str
@@ -34,7 +33,6 @@ class ImageMedia:
     
 @dataclass
 class AudioVideoMedia:
-    id: UUID
     check_sum: str
     name: str
     raw_location: str

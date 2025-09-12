@@ -13,6 +13,7 @@ class Video(Entity):
     launch_year: int
     duration: Decimal
     published: bool
+    opened: bool
     rating: Rating
     
     categories: set[UUID]
