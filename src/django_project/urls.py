@@ -19,6 +19,7 @@ from django.urls import path
 
 from rest_framework.routers import DefaultRouter
 
+from src.django_project.video_app.views import VideoViewSet
 from src.django_project.genre_app.views import GenreViewSet
 from src.django_project.category_app.views import CategoryViewSet
 from src.django_project.castmember_app.views import CastMemberViewSet
@@ -28,6 +29,7 @@ router = DefaultRouter()
 router.register(r'api/categories', CategoryViewSet, basename='category' )
 router.register(r'api/genres', GenreViewSet, basename='genre' )
 router.register(r'api/cast_members', CastMemberViewSet, basename='castmember' )
+router.register(r'api/videos', VideoViewSet, basename='videos' )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
