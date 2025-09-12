@@ -8,10 +8,16 @@ from src.django_project.video_app.models import Video as VideoModel
 class DjangoORMVideoRepository(VideoRepository):
     
     def save(self, video: Video):
-        video_model = VideoModelMapper.to_model(video)
+        
         with transaction.atomic():
-            video_model.save()
-            
+            video_model = VideoModel.objects.create(
+                title=video.title,
+                description=video.description,
+                launch_year=video.launch_year,
+                opened=video.opened,
+                duration=video.duration,
+                rating=video.rating
+            )
             
             video_model.categories.set(video.categories)
             video_model.genres.set(video.genres)
@@ -48,7 +54,6 @@ class VideoModelMapper:
             title=video.title,
             description=video.description,
             launch_year=video.launch_year,
-            published=False,
             opened=video.opened,
             duration=video.duration,
             rating=video.rating,
