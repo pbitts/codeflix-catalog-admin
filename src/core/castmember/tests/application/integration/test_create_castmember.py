@@ -24,11 +24,11 @@ class TestCreateCastMember:
         
         assert isinstance(output, CreateCastMember.Output)
         assert isinstance(output.id, uuid.UUID)
-        assert len(castmember_repository.castmembers) == 1
-        castmembers = castmember_repository.get_by_id(output.id)
-        assert castmembers.id == output.id
-        assert castmembers.name == "Albert"
-        assert castmembers.type == 'ACTOR'
+        assert len(castmember_repository.cast_members) == 1
+        cast_members = castmember_repository.get_by_id(output.id)
+        assert cast_members.id == output.id
+        assert cast_members.name == "Albert"
+        assert cast_members.type == 'ACTOR'
     
     def test_create_castmember_with_invalid_type(
         self,
@@ -45,5 +45,5 @@ class TestCreateCastMember:
         with pytest.raises(InvalidCastMemberType) as exc_info:
             use_case.execute(input)
         
-        assert len(castmember_repository.castmembers) == 0
+        assert len(castmember_repository.cast_members) == 0
         

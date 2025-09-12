@@ -32,16 +32,16 @@ class TestList:
         repository.save(castmember1)
         repository.save(castmember2)
         
-        castmembers = repository.list()
+        cast_members = repository.list()
         
-        assert len(castmembers) == 2
-        assert castmembers[0].id == castmember1.id
-        assert castmembers[0].name == "Han"
-        assert castmembers[0].type == 'ACTOR'
+        assert len(cast_members) == 2
+        assert cast_members[0].id == castmember1.id
+        assert cast_members[0].name == "Han"
+        assert cast_members[0].type == 'ACTOR'
         
-        assert castmembers[1].id == castmember2.id
-        assert castmembers[1].name == "Rogerio"
-        assert castmembers[1].type == 'DIRECTOR'
+        assert cast_members[1].id == castmember2.id
+        assert cast_members[1].name == "Rogerio"
+        assert cast_members[1].type == 'DIRECTOR'
         
         
 @pytest.mark.django_db

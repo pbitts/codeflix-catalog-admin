@@ -30,7 +30,7 @@ class ListCastMember:
         meta: ListOutputMeta = field(default_factory=ListOutputMeta)
         
     def execute(self, input: Input) -> Output:
-        castmembers = self.repository.list()
+        cast_members = self.repository.list()
         
         
         output_data = [
@@ -38,28 +38,28 @@ class ListCastMember:
                 id=castmember.id,
                 name=castmember.name,
                 type=castmember.type
-            ) for castmember in castmembers
+            ) for castmember in cast_members
         ]
         
         
-        sorted_castmembers = sorted([
+        sorted_cast_members = sorted([
                             CastMemberOutput(
                 id=castmember.id,
                 name=castmember.name,
                 type=castmember.type
-            ) for castmember in castmembers
+            ) for castmember in cast_members
                         ],
             key=lambda castmember: getattr(castmember, input.order_by))
         
         DEFAULT_PAGE_SIZE = 2
         page_offset = (input.current_page - 1) * DEFAULT_PAGE_SIZE
-        castmember_page = sorted_castmembers[page_offset:page_offset + DEFAULT_PAGE_SIZE]
+        castmember_page = sorted_cast_members[page_offset:page_offset + DEFAULT_PAGE_SIZE]
         
         return self.Output(
             data=castmember_page,
             meta=(ListOutputMeta(
                 current_page=input.current_page,
                 per_page=DEFAULT_PAGE_SIZE,
-                total=len(sorted_castmembers)
+                total=len(sorted_cast_members)
             ))
         )

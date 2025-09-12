@@ -58,8 +58,8 @@ class Video(Entity):
         self.genres.add(genre_id)
         self.validate()
     
-    def add_cast_member(self, cast_member_id: UUID) -> None:
-        self.cast_members.add(cast_member_id)
+    def add_cast_members(self, cast_members_id: UUID) -> None:
+        self.cast_members.add(cast_members_id)
         self.validate()
     
     def update_banner(self, banner: ImageMedia) -> None:

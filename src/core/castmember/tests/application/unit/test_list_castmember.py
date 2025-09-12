@@ -15,7 +15,7 @@ def mock_castmember_repository() -> CastMemberRepository:
     
 
 class TestListCastMember:
-    def test_when_no_castmembers_exist_then_return_empty_list(
+    def test_when_no_cast_members_exist_then_return_empty_list(
         self,
         mock_castmember_repository: CastMemberRepository
     ):
@@ -32,7 +32,7 @@ class TestListCastMember:
                                                       total=0))
         mock_castmember_repository.list.assert_called_once()
     
-    def test_when_castmembers_exist_then_return_genre_list(
+    def test_when_cast_members_exist_then_return_genre_list(
         self,
         mock_castmember_repository: CastMemberRepository,
     ):
