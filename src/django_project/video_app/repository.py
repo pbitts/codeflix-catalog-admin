@@ -1,9 +1,10 @@
 from uuid import UUID
 from django.db import transaction
 
+from src.core.video.domain.value_objects import AudioVideoMedia
 from src.core.video.domain.video import Video
 from src.core.video.domain.video_repository import VideoRepository
-from src.django_project.video_app.models import Video as VideoModel
+from src.django_project.video_app.models import AudioVideoMedia as AudioVideoMediaModel, Video as VideoModel
 
 class DjangoORMVideoRepository(VideoRepository):
     
@@ -24,12 +25,13 @@ class DjangoORMVideoRepository(VideoRepository):
             video_model.cast_members.set(video.cast_members)
             
     
-    def get_by_id(self, id: UUID) -> Video:
+    def get_by_id(self, id: UUID) -> Video | None:
         try:
             video_model = VideoModel.objects.get(id=id)
-            return VideoModelMapper.to_entity(video_model)
         except VideoModel.DoesNotExist:
             return None
+        else:
+            return VideoModelMapper.to_entity(video_model)
 
     
     def list(self) -> list[Video]:
@@ -38,11 +40,40 @@ class DjangoORMVideoRepository(VideoRepository):
             for video_model in VideoModel.objects.all()
         ]
     
-    def update(self):
-        pass
+    def update(self, video: Video) -> None:
+        try:
+            video_model = VideoModel.objects.get(pk=video.id)
+        except VideoModel.DoesNotExist:
+            return None
+        else:
+            AudioVideoMediaModel.objects.filter(id=video.id).delete()
+            
+            video_model.categories.set(video.categories)
+            video_model.genres.set(video.genres)
+            video_model.cast_members.set(video.cast_members)
+            
+            # persist value object
+            video_model.video = AudioVideoMediaModel.objects.create(
+                name=video.video.name,
+                raw_location=video.video.raw_location,
+                encoded_location=video.video.encoded_location,
+                status=video.video.status
+            )
+            
+            video_model.title = video.title
+            video_model.description = video.description
+            video_model.launch_year = video.launch_year
+            video_model.opened = video.opened
+            video_model.duration = video.duration
+            video_model.rating = video.rating
+            video_model.published = video.published
+            
+            video_model.save()
+            
+            
     
     def delete(self):
-        pass
+        VideoModel.objects.filter(pk=id).delete()
  
     
 
@@ -60,18 +91,27 @@ class VideoModelMapper:
         )
 
     @staticmethod
-    def to_entity(video_model: VideoModel) -> Video:
-        """Converte modelo ORM para entidade de domínio."""
-        return Video(
-            id=video_model.id,
-            title=video_model.title,
-            description=video_model.description,
-            launch_year=video_model.launch_year,
-            opened=video_model.opened,
-            duration=video_model.duration,
-            rating=video_model.rating,
-            published=video_model.published,
-            categories=set(video_model.categories.values_list("id", flat=True)),
-            genres=set(video_model.genres.values_list("id", flat=True)),
-            cast_members=set(video_model.cast_members.values_list("id", flat=True)),
+    def to_entity(model: VideoModel) -> Video:
+        video = Video(
+            id=model.id,
+            title=model.title,
+            description=model.description,
+            launch_year=model.launch_year,
+            opened=model.opened,
+            duration=model.duration,
+            rating=model.rating,
+            published=model.published,
+            categories=set(model.categories.values_list("id", flat=True)),
+            genres=set(model.genres.values_list("id", flat=True)),
+            cast_members=set(model.cast_members.values_list("id", flat=True)),
         )
+
+        if model.video:
+            video.video = AudioVideoMedia(
+                name=model.video.name,
+                raw_location=model.video.raw_location,
+                encoded_location=model.video.encoded_location,
+                status=model.video.status
+            )
+
+        return video

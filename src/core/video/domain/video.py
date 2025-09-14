@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from uuid import UUID
 
@@ -12,13 +12,15 @@ class Video(Entity):
     description: str
     launch_year: int
     duration: Decimal
-    published: bool
     opened: bool
     rating: Rating
+    
     
     categories: set[UUID]
     genres: set[UUID]
     cast_members: set[UUID]
+    
+    published: bool = field(default=False)
     
     banner: ImageMedia | None = None
     thumbnail: ImageMedia | None = None
@@ -79,7 +81,7 @@ class Video(Entity):
         self.trailer = trailer
         self.validate()
     
-    def update_video(self, video: AudioVideoMedia) -> None:
+    def update_video_media(self, video: AudioVideoMedia) -> None:
         self.video = video
         self.validate()
         

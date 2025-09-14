@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 
 @pytest.mark.django_db
 class TestCreateVideoWithoutMedia:
-    def test_user_can_create_and_edit_category(self) -> None:
+    def test_user_can_create_vide_without_media(self) -> None:
         api_client = APIClient()
         
         # Creates a new video
