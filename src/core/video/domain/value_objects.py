@@ -33,7 +33,6 @@ class ImageMedia:
     
 @dataclass
 class AudioVideoMedia:
-    check_sum: str
     name: str
     raw_location: str
     encoded_location: str
