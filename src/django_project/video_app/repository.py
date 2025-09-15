@@ -1,7 +1,7 @@
 from uuid import UUID
 from django.db import transaction
 
-from src.core.video.domain.value_objects import AudioVideoMedia
+from src.core.video.domain.value_objects import AudioVideoMedia, MediaType
 from src.core.video.domain.video import Video
 from src.core.video.domain.video_repository import VideoRepository
 from src.django_project.video_app.models import AudioVideoMedia as AudioVideoMediaModel, Video as VideoModel
@@ -111,7 +111,8 @@ class VideoModelMapper:
                 name=model.video.name,
                 raw_location=model.video.raw_location,
                 encoded_location=model.video.encoded_location,
-                status=model.video.status
+                status=model.video.status,
+                media_type=MediaType.VIDEO,
             )
 
         return video

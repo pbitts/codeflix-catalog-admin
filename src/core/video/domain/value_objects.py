@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum, auto, unique
+from enum import Enum, StrEnum, auto, unique
 from uuid import UUID
 
 
@@ -30,6 +30,14 @@ class ImageMedia:
     
     # Uses __eq__ standard from Python
     
+@unique
+class MediaType(StrEnum):
+    VIDEO = "VIDEO"
+    TRAILER = "TRAILER"
+    BANNER = "BANNER"
+    THUMBNAIL = "THUMBNAIL"
+    THUMBNAIL_HALF = "THUMBNAIL_HALF"
+    
     
 @dataclass
 class AudioVideoMedia:
@@ -37,3 +45,6 @@ class AudioVideoMedia:
     raw_location: str
     encoded_location: str
     status: MediaStatus
+    media_type: MediaType
+
+    

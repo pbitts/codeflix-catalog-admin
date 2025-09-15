@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from src.core._shared.events.message_bus import MessageBus
 from src.core._shared.infrastructure.storage.local_storage import LocalStorage
 from src.core.video.application.use_cases.upload_video import UploadVideo
 from src.core.video.application.exceptions import RelatedEntitiesNotFound, VideoNotFound
@@ -41,7 +42,8 @@ class VideoViewSet(viewsets.ViewSet):
 
         upload_video = UploadVideo(
             video_repository=DjangoORMVideoRepository(),
-            storage_service=LocalStorage()
+            storage_service=LocalStorage(),
+            message_bus=MessageBus()
         )
         video_id = UUID(pk) 
         try:
