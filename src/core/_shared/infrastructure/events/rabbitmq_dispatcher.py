@@ -7,6 +7,9 @@ from src.core._shared.events.event_dispatcher import EventDispatcher
 
 
 class RabbitMQDispatcher(EventDispatcher):
+    """
+    docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+    """
     def __init__(self, host='localhost', queue='videos.new'):
         self.host = host
         self.queue = queue
