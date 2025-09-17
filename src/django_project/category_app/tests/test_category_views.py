@@ -1,5 +1,9 @@
+import datetime
+import os
 import uuid
 from uuid import UUID
+import dotenv
+import jwt
 import pytest
 from rest_framework.test import APIClient
 from rest_framework.status import (
@@ -13,6 +17,35 @@ from rest_framework.status import (
 from src.core.category.domain.category import Category
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
+dotenv.load_dotenv()
+
+@pytest.fixture
+def admin_jwt_token():
+    raw_private_key = os.getenv("AUTH_TEST_PRIVATE_KEY")
+    private_key = f"-----BEGIN PRIVATE KEY-----\n{raw_private_key}\n-----END PRIVATE KEY-----"
+    payload = {
+        "aud": "account",
+        "realm_access": {
+            "roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix"
+            ]
+        },
+        
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1),
+        "iat": datetime.datetime.now(datetime.UTC) ,
+    }
+    
+    token = jwt.encode(payload, private_key, algorithm="RS256")
+    return token
+    
+@pytest.fixture
+def auth_api_client(admin_jwt_token):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_jwt_token}")
+    return client
 
 @pytest.fixture
 def category_movie():
@@ -39,14 +72,15 @@ class TestListCategoryAPI:
         self,
         category_movie: Category,
         category_documentary: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         
         category_repository.save(category_movie)
         category_repository.save(category_documentary)
         
-        response = APIClient().get('/api/categories/')
+        response = auth_api_client.get('/api/categories/')
         
         expected_data = {
             "data": [
@@ -70,16 +104,16 @@ class TestListCategoryAPI:
             }
         }
         
-        assert response.data['meta'] == expected_data['meta']
         assert response.status_code == HTTP_200_OK
+        assert response.data['meta'] == expected_data['meta']
         assert len(response.data["data"]) == 2
         assert response.data == expected_data
         
 @pytest.mark.django_db        
 class TestRetrieveCategoryAPI:
-    def test_retrieve_category_invalid_id_return_400(self) -> None:
+    def test_retrieve_category_invalid_id_return_400(self, auth_api_client) -> None:
         
-        response = APIClient().get('/api/categories/123123123/')
+        response = auth_api_client.get('/api/categories/123123123/')
         
         assert response.status_code == HTTP_400_BAD_REQUEST
         
@@ -87,13 +121,14 @@ class TestRetrieveCategoryAPI:
         self,
         category_movie: Category,
         category_documentary: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         category_repository.save(category_documentary)
         
-        response = APIClient().get(f'/api/categories/{category_movie.id}/')
+        response = auth_api_client.get(f'/api/categories/{category_movie.id}/')
         
         expected_data = {
             'data': 
@@ -106,16 +141,16 @@ class TestRetrieveCategoryAPI:
         assert response.status_code == HTTP_200_OK
         assert response.data == expected_data
     
-    def test_retrieve_category_not_found_return_404(self) -> None:
+    def test_retrieve_category_not_found_return_404(self, auth_api_client) -> None:
         
-        response = APIClient().get(f'/api/categories/{uuid.uuid4()}/')
+        response = auth_api_client.get(f'/api/categories/{uuid.uuid4()}/')
         
         assert response.status_code == HTTP_404_NOT_FOUND
 
 @pytest.mark.django_db
 class TestCreateCategoryAPI:
-    def test_when_payload_is_invalid_then_return_400(self) -> None:
-        response = APIClient().post(
+    def test_when_payload_is_invalid_then_return_400(self, auth_api_client) -> None:
+        response = auth_api_client.post(
             '/api/categories/', 
             data={
                 "name": "", 
@@ -130,10 +165,11 @@ class TestCreateCategoryAPI:
     
     def test_when_payload_is_valid_then_create_category_and_return_201(
         self,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
-        response = APIClient().post(
+        response = auth_api_client.post(
             '/api/categories/', 
             data={
                 "name": "Movie", 
@@ -164,10 +200,11 @@ class TestCreateCategoryAPI:
 @pytest.mark.django_db
 class TestUpdateCategoryAPI:
     def test_when_payload_is_invalid_then_return_400(
-        self
+        self,
+        auth_api_client
         ) -> None:
         
-        response = APIClient().put(
+        response = auth_api_client.put(
             f'/api/categories/112233/', 
             data={
                 "name": "", 
@@ -188,11 +225,12 @@ class TestUpdateCategoryAPI:
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        auth_api_client
     ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().put(
+        response = auth_api_client.put(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "name": "Updated Movie", 
@@ -209,8 +247,8 @@ class TestUpdateCategoryAPI:
         assert updated_category.description == "Updated Movie description"
         assert updated_category.is_active is False
     
-    def test_when_category_doesnot_exist_then_return_404(self):
-        response = APIClient().put(
+    def test_when_category_doesnot_exist_then_return_404(self, auth_api_client):
+        response = auth_api_client.put(
             f'/api/categories/{uuid.uuid4()}/', 
             data={
                 "name": "Updated Movie", 
@@ -223,9 +261,9 @@ class TestUpdateCategoryAPI:
         
 @pytest.mark.django_db
 class TestDeleteCategoryAPI:
-    def test_delete_category_invalid_id_return_400(self) -> None:
+    def test_delete_category_invalid_id_return_400(self, auth_api_client) -> None:
         
-        response = APIClient().delete('/api/categories/123123123/')
+        response = auth_api_client.delete('/api/categories/123123123/')
         
         assert response.status_code == HTTP_400_BAD_REQUEST
         
@@ -233,29 +271,30 @@ class TestDeleteCategoryAPI:
         self,
         category_movie: Category,
         category_documentary: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         category_repository.save(category_documentary)
         
-        response = APIClient().delete(f'/api/categories/{category_movie.id}/')
+        response = auth_api_client.delete(f'/api/categories/{category_movie.id}/')
         
         assert response.status_code == HTTP_204_NO_CONTENT
         assert category_repository.list() == [category_documentary]
     
-    def test_delete_category_not_found_return_404(self) -> None:
+    def test_delete_category_not_found_return_404(self, auth_api_client) -> None:
         
-        response = APIClient().delete(f'/api/categories/{uuid.uuid4()}/')
+        response = auth_api_client.delete(f'/api/categories/{uuid.uuid4()}/')
         
         assert response.status_code == HTTP_404_NOT_FOUND
     
 
 @pytest.mark.django_db
 class TestPartialUpdateCategoryAPI:
-    def test_update_name_invalid_id_return_400(self) -> None:
+    def test_update_name_invalid_id_return_400(self, auth_api_client) -> None:
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             '/api/categories/123123123/', 
             data={
                 "name": "Updated Movie"
@@ -270,12 +309,13 @@ class TestPartialUpdateCategoryAPI:
     def test_update_name_invalid_name_return_400(
         self,
         category_movie: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "name": ""
@@ -290,12 +330,13 @@ class TestPartialUpdateCategoryAPI:
     def test_update_name_inavlid_size_return_400(
         self,
         category_movie: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "name": "x" * 256
@@ -310,12 +351,13 @@ class TestPartialUpdateCategoryAPI:
     def test_update_name_return_204(
         self,
         category_movie: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "name": "Updated Movie"
@@ -333,12 +375,13 @@ class TestPartialUpdateCategoryAPI:
     def test_update_description_return_204(
         self,
         category_movie: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "description": "Updated Movie description"
@@ -356,12 +399,13 @@ class TestPartialUpdateCategoryAPI:
     def test_update_is_active_return_204(
         self,
         category_movie: Category,
-        category_repository: DjangoORMCategoryRepository
+        category_repository: DjangoORMCategoryRepository,
+        auth_api_client
         ) -> None:
         
         category_repository.save(category_movie)
         
-        response = APIClient().patch(
+        response = auth_api_client.patch(
             f'/api/categories/{category_movie.id}/', 
             data={
                 "is_active": False

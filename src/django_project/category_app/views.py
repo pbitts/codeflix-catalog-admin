@@ -11,6 +11,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.django_project.permissions import IsAdmin, IsAuthenticated
 from src.core.category.application.use_cases.delete_category import DeleteCategory, DeleteCategoryRequest
 from src.core.category.application.use_cases.update_category import UpdateCategory, UpdateCategoryRequest
 from src.core.category.application.use_cases.create_category import CreateCategory, CreateCategoryRequest
@@ -28,6 +29,7 @@ class CategoryViewSet(viewsets.ViewSet):
     """
     A simple ViewSet for listing or retrieving categories.
     """
+    permission_classes = [ IsAuthenticated | IsAdmin ]
     
     def list(self, request: Request) -> Response:
         order_by = request.query_params.get('order_by', 'name')
