@@ -12,14 +12,14 @@ class DjangoORMVideoRepository(VideoRepository):
         
         with transaction.atomic():
             video_model = VideoModel.objects.create(
+                 id=video.id,
                 title=video.title,
                 description=video.description,
                 launch_year=video.launch_year,
                 opened=video.opened,
                 duration=video.duration,
-                rating=video.rating
+                rating=video.rating,
             )
-            
             video_model.categories.set(video.categories)
             video_model.genres.set(video.genres)
             video_model.cast_members.set(video.cast_members)
@@ -28,10 +28,9 @@ class DjangoORMVideoRepository(VideoRepository):
     def get_by_id(self, id: UUID) -> Video | None:
         try:
             video_model = VideoModel.objects.get(id=id)
+            return VideoModelMapper.to_entity(video_model)
         except VideoModel.DoesNotExist:
             return None
-        else:
-            return VideoModelMapper.to_entity(video_model)
 
     
     def list(self) -> list[Video]:
@@ -42,7 +41,7 @@ class DjangoORMVideoRepository(VideoRepository):
     
     def update(self, video: Video) -> None:
         try:
-            video_model = VideoModel.objects.get(pk=video.id)
+            video_model = VideoModel.objects.get(id=video.id)
         except VideoModel.DoesNotExist:
             return None
         else:

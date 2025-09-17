@@ -35,7 +35,7 @@ class VideoViewSet(viewsets.ViewSet):
         
         return Response(data=CreateVideoOutputSerializer(output).data, status=status.HTTP_201_CREATED)
     
-    def partial_update(self, request: Request, pk: UUID = None):
+    def partial_update(self, request: Request, pk: UUID):
         file = request.FILES["video_file"]
         content = file.read()
         content_type = file.content_type
@@ -45,11 +45,11 @@ class VideoViewSet(viewsets.ViewSet):
             storage_service=LocalStorage(),
             message_bus=MessageBus()
         )
-        video_id = UUID(pk) 
+        
         try:
             upload_video.execute(
                 UploadVideo.Input(
-                    video_id=video_id,
+                    video_id=UUID(pk),
                     file_name=file.name,
                     content=content,
                     content_type=content_type
