@@ -80,7 +80,7 @@ class TestEvents:
                 )
         assert upload_media_response.status_code == 200
         
-        # Sends message to queue vide.converted
+        # Sends message to queue videos.converted
         
         QUEUE = "videos.converted"
         HOST = "localhost"
