@@ -1,25 +1,25 @@
 from dataclasses import dataclass
-from enum import Enum, auto, unique
+from enum import Enum, StrEnum, auto, unique
 from uuid import UUID
 
 
 @unique # avoid repeating
-class MediaStatus(Enum):
-    PENDING = auto() # auto create value ex: 1, 2....
-    PROCESSING = auto()
-    COMPLETED = auto()
-    ERROR = auto()
+class MediaStatus(StrEnum):
+    PENDING = "PENDING" 
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    ERROR = "ERROR"
     
 
 @unique
-class Rating(Enum):
-    ER = auto()
-    L = auto()
-    AGE_10 = auto() 
-    AGE_12 = auto() 
-    AGE_14 = auto() 
-    AGE_16 = auto() 
-    AGE_18 = auto()    
+class Rating(StrEnum):
+    ER = "ER"
+    L = "L"
+    AGE_10 = "AGE_10"
+    AGE_12 = "AGE_12"
+    AGE_14 = "AGE_14" 
+    AGE_16 = "AGE_16"
+    AGE_18 = "AGE_18"  
     
     
 @dataclass(frozen=True)
@@ -30,6 +30,14 @@ class ImageMedia:
     
     # Uses __eq__ standard from Python
     
+@unique
+class MediaType(StrEnum):
+    VIDEO = "VIDEO"
+    TRAILER = "TRAILER"
+    BANNER = "BANNER"
+    THUMBNAIL = "THUMBNAIL"
+    THUMBNAIL_HALF = "THUMBNAIL_HALF"
+    
     
 @dataclass
 class AudioVideoMedia:
@@ -37,3 +45,6 @@ class AudioVideoMedia:
     raw_location: str
     encoded_location: str
     status: MediaStatus
+    media_type: MediaType
+
+    

@@ -2,7 +2,7 @@ import pytest
 from decimal import Decimal
 from uuid import uuid4
 from src.core.video.domain.video import Video
-from src.core.video.domain.value_objects import Rating
+from src.core.video.domain.value_objects import AudioVideoMedia, MediaStatus, MediaType, Rating
 
 
 class TestCreateVideo:
@@ -58,3 +58,46 @@ class TestCreateVideo:
                 cast_members=set()
             )
         assert "title cannot be longer than 255" in str(exc_info.value)
+        
+
+class TestVideoProcess:
+    def make_video_with_media(self):
+        video = Video(
+            title="Test Video",
+            description="desc",
+            launch_year=2025,
+            duration=Decimal("100.0"),
+            published=False,
+            opened=False,
+            rating=Rating.L,
+            categories=set(),
+            genres=set(),
+            cast_members=set(),
+        )
+        video.video = AudioVideoMedia(
+            name="raw_video.mp4",
+            raw_location="/tmp/raw.mp4",
+            media_type=MediaType.VIDEO,
+            encoded_location="",
+            status=MediaStatus.PROCESSING,
+        )
+        return video
+
+    def test_process_completed_updates_video_and_publishes(self):
+        video = self.make_video_with_media()
+        encoded_path = "/encoded/video.mp4"
+
+        video.process(MediaStatus.COMPLETED, encoded_path)
+
+        assert video.video.status == MediaStatus.COMPLETED
+        assert video.video.encoded_location == encoded_path
+        assert video.published is True  # publish() deve ter sido chamado
+
+    def test_process_error_sets_status_error_and_empty_encoded_location(self):
+        video = self.make_video_with_media()
+
+        video.process(MediaStatus.ERROR, "/does/not/matter.mp4")
+
+        assert video.video.status == MediaStatus.ERROR
+        assert video.video.encoded_location == ""
+        assert video.published is False

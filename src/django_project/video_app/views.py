@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from src.core._shared.events.message_bus import MessageBus
 from src.core._shared.infrastructure.storage.local_storage import LocalStorage
 from src.core.video.application.use_cases.upload_video import UploadVideo
 from src.core.video.application.exceptions import RelatedEntitiesNotFound, VideoNotFound
@@ -34,20 +35,21 @@ class VideoViewSet(viewsets.ViewSet):
         
         return Response(data=CreateVideoOutputSerializer(output).data, status=status.HTTP_201_CREATED)
     
-    def partial_update(self, request: Request, pk: UUID = None):
+    def partial_update(self, request: Request, pk: UUID):
         file = request.FILES["video_file"]
         content = file.read()
         content_type = file.content_type
 
         upload_video = UploadVideo(
             video_repository=DjangoORMVideoRepository(),
-            storage_service=LocalStorage()
+            storage_service=LocalStorage(),
+            message_bus=MessageBus()
         )
-        video_id = UUID(pk) 
+        
         try:
             upload_video.execute(
                 UploadVideo.Input(
-                    video_id=video_id,
+                    video_id=UUID(pk),
                     file_name=file.name,
                     content=content,
                     content_type=content_type
