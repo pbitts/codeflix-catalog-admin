@@ -1,7 +1,9 @@
+import datetime
+import os
 from uuid import UUID, uuid4
-from django.test import override_settings
-from django.urls import reverse
 
+import dotenv
+import jwt
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -10,6 +12,35 @@ from src.django_project.castmember_app.repository import DjangoORMCastMemberRepo
 from src.core.castmember.domain.castmember import CastMember
 
 
+dotenv.load_dotenv()
+
+@pytest.fixture
+def admin_jwt_token():
+    raw_private_key = os.getenv("AUTH_TEST_PRIVATE_KEY")
+    private_key = f"-----BEGIN PRIVATE KEY-----\n{raw_private_key}\n-----END PRIVATE KEY-----"
+    payload = {
+        "aud": "account",
+        "realm_access": {
+            "roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix"
+            ]
+        },
+        
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1),
+        "iat": datetime.datetime.now(datetime.UTC) ,
+    }
+    
+    token = jwt.encode(payload, private_key, algorithm="RS256")
+    return token
+    
+@pytest.fixture
+def auth_api_client(admin_jwt_token):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_jwt_token}")
+    return client
 
 @pytest.fixture
 def actor_castmember() -> CastMember:
@@ -38,7 +69,8 @@ class TestListAPI:
         self,
         actor_castmember: CastMember,
         director_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
         
     ) -> None:
         
@@ -47,7 +79,7 @@ class TestListAPI:
         
 
         url = "/api/cast_members/"
-        response = APIClient().get(url)
+        response = auth_api_client.get(url)
 
         expected_data = {
             "data": [
@@ -79,7 +111,8 @@ class TestCreateAPI:
          self,
         actor_castmember: CastMember,
         director_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
         
     ) -> None:
         
@@ -90,7 +123,7 @@ class TestCreateAPI:
             "name": "Ana",
             "type": 'ACTOR'
         }
-        response = APIClient().post(url, data)
+        response = auth_api_client.post(url, data)
         
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["id"]
@@ -110,7 +143,8 @@ class TestCreateAPI:
     
     def test_create_castmember_invalid_type_return_400(
         self,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ) -> None:
 
         url = "/api/cast_members/"
@@ -118,13 +152,14 @@ class TestCreateAPI:
             "name": "Bruna",
             "type": 'Diretora'
         }
-        response = APIClient().post(url, data)
+        response = auth_api_client.post(url, data)
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         
     def test_create_castmember_invalid_name_return_400(
         self,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ) -> None:
 
         url = "/api/cast_members/"
@@ -132,7 +167,7 @@ class TestCreateAPI:
             "name": "",
             "type": 'ACTOR'
         }
-        response = APIClient().post(url, data)
+        response = auth_api_client.post(url, data)
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -140,32 +175,35 @@ class TestCreateAPI:
 @pytest.mark.django_db
 class TestDeleteAPI:
     def test_delete_non_existent_castmember_raise_404(
-        self
+        self,
+        auth_api_client
     ):
         url = f"/api/cast_members/{uuid4()}/"
-        response = APIClient().delete(url)
+        response = auth_api_client.delete(url)
         
         assert response.status_code == 404
     
     def test_delete_existent_genre(
         self,
         director_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ):
         
         castmember_repository.save(director_castmember)
         
         url = f"/api/cast_members/{director_castmember.id}/"
-        response = APIClient().delete(url)
+        response = auth_api_client.delete(url)
         
         assert response.status_code == 204
         
     def test_delete_invalid_pk(
-        self
+        self,
+        auth_api_client
     ):
         
         url = "/api/cast_members/ivalid-pk/"
-        response = APIClient().delete(url)
+        response = auth_api_client.delete(url)
         
         
         assert response.status_code == 400
@@ -176,7 +214,8 @@ class TestUpdateAPI:
         self,
         actor_castmember: CastMember,
         director_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ) -> None:
         castmember_repository.save(actor_castmember)
         saved_castmember = castmember_repository.get_by_id(actor_castmember.id)
@@ -189,7 +228,7 @@ class TestUpdateAPI:
             "name": "Reinaldo 2",
             "type": 'DIRECTOR'
         }
-        response = APIClient().put(url, data=data)
+        response = auth_api_client.put(url, data=data)
         
         assert response.status_code == status.HTTP_204_NO_CONTENT
         updated_castmember = castmember_repository.get_by_id(actor_castmember.id)
@@ -199,7 +238,8 @@ class TestUpdateAPI:
     def test_when_request_data_is_invalid_then_return_400(
         self,
         director_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ) -> None:
         castmember_repository.save(director_castmember)
         saved_castmember = castmember_repository.get_by_id(director_castmember.id)
@@ -211,7 +251,7 @@ class TestUpdateAPI:
             "name": "",
             "type": 'DIRECTOR',
         }
-        response = APIClient().put(url, data=data)
+        response = auth_api_client.put(url, data=data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data == {"name": ["This field may not be blank."]}
@@ -219,7 +259,8 @@ class TestUpdateAPI:
     def test_when_type_do_not_exist_then_return_400(
         self,
         actor_castmember: CastMember,
-        castmember_repository: DjangoORMCastMemberRepository
+        castmember_repository: DjangoORMCastMemberRepository,
+        auth_api_client
     ) -> None:
         castmember_repository.save(actor_castmember)
 
@@ -228,18 +269,18 @@ class TestUpdateAPI:
             "name": "Reinaldo 1",
             "type": 'Ator'
         }
-        response = APIClient().put(url, data=data)
+        response = auth_api_client.put(url, data=data)
 
         print(response.data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_when_castmember_does_not_exist_then_return_404(self) -> None:
+    def test_when_castmember_does_not_exist_then_return_404(self, auth_api_client) -> None:
         url = f"/api/cast_members/{str(uuid4())}/"
         data = {
             "name": "Diego",
             "type": 'ACTOR',
         }
-        response = APIClient().put(url, data=data)
+        response = auth_api_client.put(url, data=data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         

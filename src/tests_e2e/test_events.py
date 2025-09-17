@@ -1,3 +1,7 @@
+import datetime
+import dotenv
+import jwt
+import os
 import pytest
 import json
 import pika
@@ -5,15 +9,44 @@ import pika
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from src.django_project.video_app.models import Video
+
+dotenv.load_dotenv()
+
+@pytest.fixture
+def admin_jwt_token():
+    raw_private_key = os.getenv("AUTH_TEST_PRIVATE_KEY")
+    private_key = f"-----BEGIN PRIVATE KEY-----\n{raw_private_key}\n-----END PRIVATE KEY-----"
+    payload = {
+        "aud": "account",
+        "realm_access": {
+            "roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix"
+            ]
+        },
+        
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1),
+        "iat": datetime.datetime.now(datetime.UTC) ,
+    }
+    
+    token = jwt.encode(payload, private_key, algorithm="RS256")
+    return token
+    
+@pytest.fixture
+def auth_api_client(admin_jwt_token):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_jwt_token}")
+    return client
 
 @pytest.mark.django_db
 class TestEvents:
-    def test_events(self) -> None:
-        api_client = APIClient()
+    def test_events(self, auth_api_client) -> None:
+        
         
         # Creates a new category
-        create_category_response = api_client.post(
+        create_category_response = auth_api_client.post(
             "/api/categories/", 
             {
                 "name": "Movie",
@@ -24,7 +57,7 @@ class TestEvents:
         category_id = create_category_response.data["id"]
         
         # Creates new castmember
-        create_castmembers_response = api_client.post(
+        create_castmembers_response = auth_api_client.post(
             "/api/cast_members/", 
             {
                 "name": "Monica",
@@ -35,7 +68,7 @@ class TestEvents:
         castmember_id = create_castmembers_response.data["id"]
         
         # Creates new genre
-        create_genres_response = api_client.post(
+        create_genres_response = auth_api_client.post(
             "/api/genres/", 
             {
                 "name": "Romance",
@@ -47,7 +80,7 @@ class TestEvents:
         genre_id = create_genres_response.data["id"]
         
         # Creates Video without Media
-        create_video_response = api_client.post(
+        create_video_response = auth_api_client.post(
             "/api/videos/", 
             {
                 "title": "title",
@@ -73,7 +106,7 @@ class TestEvents:
         
         # Upload Media
         video_file = SimpleUploadedFile("sample.mp4", b"fake-video-content", content_type="video/mp4")
-        upload_media_response = api_client.patch(
+        upload_media_response = auth_api_client.patch(
                 f"/api/videos/{video_id}/",
                 {"video_file": video_file},
                 format="multipart"
