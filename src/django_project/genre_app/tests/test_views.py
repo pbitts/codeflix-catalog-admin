@@ -14,7 +14,7 @@ from src.core.genre.domain.genre import Genre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env.example")
 
 @pytest.fixture
 def admin_jwt_token():

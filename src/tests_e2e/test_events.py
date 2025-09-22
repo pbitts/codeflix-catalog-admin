@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env.example")
 
 @pytest.fixture
 def admin_jwt_token():

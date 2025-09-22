@@ -17,7 +17,7 @@ from rest_framework.status import (
 from src.core.category.domain.category import Category
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env.example")
 
 @pytest.fixture
 def admin_jwt_token():

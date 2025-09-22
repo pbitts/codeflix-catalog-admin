@@ -12,7 +12,7 @@ from src.django_project.castmember_app.repository import DjangoORMCastMemberRepo
 from src.core.castmember.domain.castmember import CastMember
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env.example")
 
 @pytest.fixture
 def admin_jwt_token():

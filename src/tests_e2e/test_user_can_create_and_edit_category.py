@@ -7,7 +7,7 @@ import pytest
 from rest_framework.test import APIClient
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env.example")
 
 @pytest.fixture
 def admin_jwt_token():
