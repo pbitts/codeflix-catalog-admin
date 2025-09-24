@@ -1,7 +1,3 @@
-Here’s a polished, professional version of your README that’s portfolio-ready:
-
----
-
 # Codeflix Catalog Admin
 
 Catalog Administration service built with **Python** as part of the **FullCycle 3.0 Final Project**.
@@ -72,7 +68,3 @@ python manage.py runserver
 * The project is designed to be **modular and extensible**.
 * Follows **Clean Architecture** to separate business logic from frameworks.
 * Works seamlessly as part of a **microservices environment**.
-
----
-
-Would you like me to also add a **diagram** (architecture flow with Django, RabbitMQ, Kafka, Keycloak) so it looks even stronger in your portfolio?
