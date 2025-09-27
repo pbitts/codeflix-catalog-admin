@@ -20,7 +20,7 @@ It integrates with a microservices ecosystem using message brokers and secure au
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/codeflix-catalog-admin.git
+git clone https://github.com/pbitts/codeflix-catalog-admin.git
 cd codeflix-catalog-admin
 ```
 
